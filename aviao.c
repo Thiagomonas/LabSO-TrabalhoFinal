@@ -16,7 +16,7 @@ int len(char *str){
 }
 
 char *criar_aviao(int *emergencia){
-    *emergencia = rand() % 2;
+    *emergencia = rand() % 5;
 
     int i = rand() % NUM_NOMES;
     int tam = len(nomes[i]);
@@ -30,7 +30,7 @@ char *criar_aviao(int *emergencia){
 void adicionar_lista(int pos_lista, char* nome, int emergencia){
     gotoxy(3, pos_lista);
     printf("%s", nome);
-    if (emergencia){
+    if (!emergencia){
         printf(" - [EMERGÊNCIA]");
     }
     gotoxy(1, 9);
@@ -38,7 +38,8 @@ void adicionar_lista(int pos_lista, char* nome, int emergencia){
 }
 
 void *criar_requisicao(void *args){
-    int tempo = COOLDOWN;
+    int cooldown = COOLDOWN + rand() % 5;
+    int tempo = cooldown;
     int val, val_ant;
     sem_t *lista = (sem_t *) args;
     
@@ -50,7 +51,7 @@ void *criar_requisicao(void *args){
 
         // Outro avião foi adicionado na lista -> Resetar Cooldown
         if (val_ant != val){
-            tempo = COOLDOWN;
+            tempo = cooldown;
             continue;
         }
         tempo--;
