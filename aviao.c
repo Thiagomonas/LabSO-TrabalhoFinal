@@ -3,23 +3,41 @@
 #include <unistd.h>
 #include <semaphore.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "aviao.h"
 
+char *nomes[MAX_NOMES] = {"Airbus A318 NEO", "Airbus A319 NEO", "Airbus A320 NEO", "Airbus A321 NEO",
+"Airbus A330", "Airbus A350", "Airbus A380", "Boeing 737-8 MAX", "Boeing 747-8", "Boeing 757",
+"Boeing 767", "Boeing 777", "Boeing 787", "Embraer E195E2", "Embraer E175-E2", "Embraer E190-E2"};
 int em_espera = 0;
 
-void adicionar_lista(int pos_lista, sem_t *terminal){
+char *selec_nome(){
+    int i = rand() % MAX_NOMES;
+    char *nome = (char *) malloc(sizeof(strlen(nomes[i])));
+    int j = 0;
+    while(nomes[i][j] != '\0'){
+        nome[j] = nomes[i][j];
+        j++;
+    }
+    nome[j] = '\0';
+
+    return nome;
+}
+
+void adicionar_lista(char *nome, int pos_lista, sem_t *terminal){
     sem_wait(terminal);
 
     gotoxy(3, pos_lista);
-    printf("avião %d", pos_lista);
+    printf("%s", nome);
     gotoend();
     fflush(stdout);
 
     FILE *arq = fopen("lista.txt", "a");
-    fprintf(arq, "avião %d\n", pos_lista);
+    fprintf(arq, "%s\n", nome);
     fclose(arq);
 
+    free(nome);
     sem_post(terminal);
 }
 
@@ -30,13 +48,13 @@ void *criar_requisicao(void *arg){
         sleep(MIN_COOLDOWN + (rand() % 3));
         
         em_espera++;
-        adicionar_lista(em_espera, terminal);
+        char *nome = selec_nome();
+        adicionar_lista(nome, em_espera, terminal);
     }
     // Estourou a lista
-    printf("Muitos aviões em espera, lamentável de vdd\n");
-    int *status = (int *) malloc(sizeof(int));
-    *status = 1;
-    return status;
+    printf("Muitos aviões em espera! Você Perdeu!\n");
+    remove("lista.txt");
+    exit(0);
 }
 
 char *remover_linha(int pos_lista){
@@ -113,7 +131,7 @@ void *liberar_pista(void *arg){
         sem_wait(terminal);
         char *nome = remover_linha(pos_lista);
         
-        // Verifica se há avião na posição
+        // Verifica se há um avião na posição
         if (nome != NULL){
             em_espera--;
             atualizar_lista(nome);
@@ -121,7 +139,5 @@ void *liberar_pista(void *arg){
         sem_post(terminal);
     }
 
-    int *status = (int *) malloc(sizeof(int));
-    *status = 1;
-    return status;
+    exit(0);
 }
