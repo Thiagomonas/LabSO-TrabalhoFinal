@@ -41,7 +41,7 @@ void *criar_requisicao(void *arg){
 
 char *remover_linha(int pos_lista){
     char buf[50];
-    char *nome;
+    char *nome = NULL;
     FILE *arq = fopen("lista.txt", "r");
     FILE *tmp = fopen("tmp.txt", "w");
 
@@ -96,16 +96,23 @@ void *liberar_pista(void *arg){
     sem_t *terminal = (sem_t *) arg;
 
     while (1){
-        int pos_lista = getchar() - 48;
+        char input = getchar();
+        int pos_lista = input - 48;
+
+        if (input == 'q'){
+            break;
+        }
 
         if (pos_lista < 1 || pos_lista > 5) {
             gotoend();
             continue;
         }
         sem_wait(terminal);
-        em_espera--;
         char *nome = remover_linha(pos_lista);
-        atualizar_lista(nome);
+        if (nome != NULL){
+            em_espera--;
+            atualizar_lista(nome);
+        }
         sem_post(terminal);
     }
 
