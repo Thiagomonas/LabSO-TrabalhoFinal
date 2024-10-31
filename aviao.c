@@ -12,8 +12,15 @@ sem_t pista;
 
 char *nomes[MAX_NOMES] = {"Airbus A318 NEO", "Airbus A319 NEO", "Airbus A320 NEO", "Airbus A321 NEO",
 "Airbus A330", "Airbus A350", "Airbus A380", "Boeing 737-8 MAX", "Boeing 747-8", "Boeing 757",
-"Boeing 767", "Boeing 777", "Boeing 787", "Embraer E195E2", "Embraer E175-E2", "Embraer E190-E2"};
+"Boeing 767", "Boeing 777", "Boeing 787", "Embraer E195-E2", "Embraer E175-E2", "Embraer E190-E2"};
 int em_espera = 0;
+
+int min(int x, int y){
+    if (x < y){
+        return x;
+    }
+    return y;
+}
 
 char *selec_nome(){
     int i = rand() % MAX_NOMES;
@@ -46,13 +53,17 @@ void adicionar_lista(char *nome, int pos_lista, sem_t *terminal){
 
 void *criar_requisicao(void *arg){
     sem_t *terminal = (sem_t *) arg;
+    int num_avioes = 0;
+    int nivel = 0;
 
     while (em_espera < TAM_LISTA){
-        sleep(MIN_COOLDOWN + (rand() % 3));
+        if (num_avioes % 5 == 4){(nivel = min(nivel + 1, 3));}
+        sleep(MIN_COOLDOWN + (rand() % 3) - nivel);
         
         em_espera++;
         char *nome = selec_nome();
         adicionar_lista(nome, em_espera, terminal);
+        num_avioes++;
     }
     // Estourou a lista
     printf("Muitos aviões em espera! Você Perdeu!\n");
