@@ -7,6 +7,9 @@
 
 #include "aviao.h"
 
+pthread_t timer;
+sem_t pista;
+
 char *nomes[MAX_NOMES] = {"Airbus A318 NEO", "Airbus A319 NEO", "Airbus A320 NEO", "Airbus A321 NEO",
 "Airbus A330", "Airbus A350", "Airbus A380", "Boeing 737-8 MAX", "Boeing 747-8", "Boeing 757",
 "Boeing 767", "Boeing 777", "Boeing 787", "Embraer E195E2", "Embraer E175-E2", "Embraer E190-E2"};
@@ -108,10 +111,26 @@ void atualizar_lista(char *nome){
     gotoxy(1, 6);
     printf("%s está na pista!", nome);
     gotoend();
+    fflush(stdout);
+}
+
+void *tempo_pista(){
+    sem_wait(&pista);
+    sleep(TEMPO_PISTA);
+
+    clearline(1, 6);
+    gotoxy(1, 6);
+    printf("[PISTA VAZIA]");
+    gotoend();
+    fflush(stdout);
+
+    sem_post(&pista);
+    return 0;
 }
 
 void *liberar_pista(void *arg){
     sem_t *terminal = (sem_t *) arg;
+    sem_init(&pista, 0, 1);
 
     while (1){
         char input = getchar();
@@ -133,8 +152,16 @@ void *liberar_pista(void *arg){
         
         // Verifica se há um avião na posição
         if (nome != NULL){
+            if(sem_trywait(&pista)){
+                // Pista já está sendo utilizada
+                remove("lista.txt");
+                printf("Há mais de um avião na pista! Você perdeu!\n");
+                exit(0);
+            }
+            sem_post(&pista);
             em_espera--;
             atualizar_lista(nome);
+            pthread_create(&timer, NULL, tempo_pista, NULL);
         }
         sem_post(terminal);
     }
