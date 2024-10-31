@@ -31,7 +31,8 @@ int main(){
     pthread_create(&aviao, NULL, criar_requisicao, &terminal);
     pthread_create(&controlador, NULL, liberar_pista, &terminal);
 
-    pthread_join(aviao, NULL);
-    pthread_join(controlador, NULL);
+    int *status;
+    pthread_join(aviao, (void **)&status);
+
     remove("lista.txt");
 }

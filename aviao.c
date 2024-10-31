@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <semaphore.h>
+#include <string.h>
 
 #include "aviao.h"
 
@@ -33,11 +34,14 @@ void *criar_requisicao(void *arg){
     }
     // Estourou a lista
     printf("Muitos aviões em espera, lamentável de vdd\n");
-    exit(0);
+    int *status = (int *) malloc(sizeof(int));
+    *status = 1;
+    return status;
 }
 
-void remover_linha(int pos_lista){
+char *remover_linha(int pos_lista){
     char buf[50];
+    char *nome;
     FILE *arq = fopen("lista.txt", "r");
     FILE *tmp = fopen("tmp.txt", "w");
 
@@ -46,6 +50,15 @@ void remover_linha(int pos_lista){
         if (linha != pos_lista){
             fputs(buf, tmp);
         }
+        else {
+            nome = (char *) malloc(strlen(buf));
+            int i = 0;
+            while(buf[i] != '\n'){
+                nome[i] = buf[i];
+                i++;
+            }
+            nome[i] = '\0';
+        }
         linha++;
     }
 
@@ -53,9 +66,11 @@ void remover_linha(int pos_lista){
     fclose(tmp);
     remove("lista.txt");
     rename("tmp.txt", "lista.txt");
+
+    return nome;
 }
 
-void atualizar_lista(){
+void atualizar_lista(char *nome){
     char buf[50];
     FILE *arq = fopen("lista.txt", "r");
     
@@ -68,9 +83,12 @@ void atualizar_lista(){
 
     while (linha <= TAM_LISTA){
         // Limpar linhas
-        printf("\033[%d;3H\033[K", linha);
+        clearline(3, linha);
         linha++;
     }
+    clearline(1, 6);
+    gotoxy(1, 6);
+    printf("%s está na pista!", nome);
     gotoend();
 }
 
@@ -86,8 +104,8 @@ void *liberar_pista(void *arg){
         }
         sem_wait(terminal);
         em_espera--;
-        remover_linha(pos_lista);
-        atualizar_lista();
+        char *nome = remover_linha(pos_lista);
+        atualizar_lista(nome);
         sem_post(terminal);
     }
 
