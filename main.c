@@ -33,6 +33,5 @@ int main(){
 
     int *status;
     pthread_join(aviao, (void **)&status);
-
     remove("lista.txt");
 }

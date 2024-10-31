@@ -99,8 +99,11 @@ void *liberar_pista(void *arg){
         char input = getchar();
         int pos_lista = input - 48;
 
+        // Tecla para sair do jogo
         if (input == 'q'){
-            break;
+            remove("lista.txt");
+            printf("Você desistiu! Obrigado por jogar!\n");
+            exit(0);
         }
 
         if (pos_lista < 1 || pos_lista > 5) {
@@ -109,6 +112,8 @@ void *liberar_pista(void *arg){
         }
         sem_wait(terminal);
         char *nome = remover_linha(pos_lista);
+        
+        // Verifica se há avião na posição
         if (nome != NULL){
             em_espera--;
             atualizar_lista(nome);
@@ -116,5 +121,7 @@ void *liberar_pista(void *arg){
         sem_post(terminal);
     }
 
-    exit(0);
+    int *status = (int *) malloc(sizeof(int));
+    *status = 1;
+    return status;
 }
