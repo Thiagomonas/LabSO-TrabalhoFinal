@@ -54,7 +54,6 @@ int adicionar_lista(char *nome, int pos_lista, sem_t *terminal){
     fprintf(arq, "%s\n", nome);
     fclose(arq);
 
-    free(nome);
     sem_post(terminal);
 
     return emergencia;
@@ -63,23 +62,28 @@ int adicionar_lista(char *nome, int pos_lista, sem_t *terminal){
 int tratar_emergencia(int pos_lista, char *nome){
     int tempo = 8;
     char buf[50];
-    FILE *arq = fopen("lista.txt", "r");
     while (tempo > 0){
+        FILE *arq = fopen("lista.txt", "r");
         int linha = 1;
         while (fgets(buf, sizeof(buf), arq) != NULL){
             int tam = strlen(buf) / sizeof(char);
-            printf("%d", tam);
             buf[tam - 1] = '\0';
             if (linha == pos_lista && strcmp(buf, nome)){
                 fclose(arq);
                 return 0;
             }
+            linha++;
+        }
+        if (linha <= pos_lista){
+            fclose(arq);
+            return 0;
         }
         sleep(1);
         tempo--;
+        fclose(arq);
     }
     // Tempo estourado
-    fclose(arq);
+    free(nome);
     printf("Emergência não atendida! Você perdeu o jogo!\n");
     remove("lista.txt");
     exit(0);
@@ -87,18 +91,22 @@ int tratar_emergencia(int pos_lista, char *nome){
 
 void *criar_requisicao(void *arg){
     sem_t *terminal = (sem_t *) arg;
+    char *nome = NULL;
     int num_avioes = 0;
     int nivel = 0;
 
     while (em_espera <= TAM_LISTA){
         if (num_avioes % 5 == 4){(nivel = min(nivel + 1, 3));}
         sleep(MIN_COOLDOWN + (rand() % 3) - nivel);
+        if (em_espera == TAM_LISTA){
+            break;
+        }
         
         em_espera++;
-        char *nome = selec_nome();
+        nome = selec_nome();
         int emergencia = adicionar_lista(nome, em_espera, terminal);
         if (!emergencia){
-            tratar_emergencia(em_espera, nome);
+            emergencia = tratar_emergencia(em_espera, nome);
         }
         num_avioes++;
     }

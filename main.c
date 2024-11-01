@@ -14,6 +14,7 @@ int main(){
     setlocale(LC_ALL, "pt-br");
     srand(time(NULL));
     sem_init(&terminal, 0, 1);
+    remove("lista.txt");
 
     printf("Você está controlando uma pista de aviões! Com o tempo novos aviões aparecerão\n"
     "numa lista e você precisa liberá-los para pousar ou decolar, para isso basta\n"
