@@ -35,11 +35,18 @@ char *selec_nome(){
     return nome;
 }
 
-void adicionar_lista(char *nome, int pos_lista, sem_t *terminal){
+int adicionar_lista(char *nome, int pos_lista, sem_t *terminal){
+    int emergencia = rand() % 5;
     sem_wait(terminal);
 
     gotoxy(3, pos_lista);
-    printf("%s", nome);
+    if (!emergencia){
+        // Emergência
+        printf("%s - [EMERGÊNCIA]", nome);
+    }
+    else {
+        printf("%s", nome);
+    }
     gotoend();
     fflush(stdout);
 
@@ -49,6 +56,33 @@ void adicionar_lista(char *nome, int pos_lista, sem_t *terminal){
 
     free(nome);
     sem_post(terminal);
+
+    return emergencia;
+}
+
+int tratar_emergencia(int pos_lista, char *nome){
+    int tempo = 8;
+    char buf[50];
+    FILE *arq = fopen("lista.txt", "r");
+    while (tempo > 0){
+        int linha = 1;
+        while (fgets(buf, sizeof(buf), arq) != NULL){
+            int tam = strlen(buf) / sizeof(char);
+            printf("%d", tam);
+            buf[tam - 1] = '\0';
+            if (linha == pos_lista && strcmp(buf, nome)){
+                fclose(arq);
+                return 0;
+            }
+        }
+        sleep(1);
+        tempo--;
+    }
+    // Tempo estourado
+    fclose(arq);
+    printf("Emergência não atendida! Você perdeu o jogo!\n");
+    remove("lista.txt");
+    exit(0);
 }
 
 void *criar_requisicao(void *arg){
@@ -56,13 +90,16 @@ void *criar_requisicao(void *arg){
     int num_avioes = 0;
     int nivel = 0;
 
-    while (em_espera < TAM_LISTA){
+    while (em_espera <= TAM_LISTA){
         if (num_avioes % 5 == 4){(nivel = min(nivel + 1, 3));}
         sleep(MIN_COOLDOWN + (rand() % 3) - nivel);
         
         em_espera++;
         char *nome = selec_nome();
-        adicionar_lista(nome, em_espera, terminal);
+        int emergencia = adicionar_lista(nome, em_espera, terminal);
+        if (!emergencia){
+            tratar_emergencia(em_espera, nome);
+        }
         num_avioes++;
     }
     // Estourou a lista
@@ -108,6 +145,7 @@ void atualizar_lista(char *nome){
     
     int linha = 1;
     while (fgets(buf, sizeof(buf), arq) != NULL){
+        clearline(3, linha);
         gotoxy(3, linha);
         printf("%s", buf);
         linha++;
