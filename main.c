@@ -19,7 +19,7 @@ int main(){
     printf("Você está controlando uma pista de aviões! Com o tempo novos aviões aparecerão\n"
     "numa lista e você precisa liberá-los para pousar ou decolar, para isso basta\n"
     "digitar o seu número respectivo, apenas cuidado para não deixar mais de um\n"
-    "avião utilizar a pista. Aproveite o jogo!\n\n"
+    "avião utilizar a pista e sempre priorize os aviões com emergência. Aproveite o jogo!\n\n"
     "Pressione enter para começar!\n");
     getchar();
     clear();
