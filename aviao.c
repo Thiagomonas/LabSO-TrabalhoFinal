@@ -56,9 +56,12 @@ void *criar_requisicao(void *arg){
     int num_avioes = 0;
     int nivel = 0;
 
-    while (em_espera < TAM_LISTA){
+    while (em_espera <= TAM_LISTA){
         if (num_avioes % 5 == 4){(nivel = min(nivel + 1, 3));}
         sleep(MIN_COOLDOWN + (rand() % 3) - nivel);
+        if (em_espera == 5){
+            break;
+        }
         
         em_espera++;
         char *nome = selec_nome();
